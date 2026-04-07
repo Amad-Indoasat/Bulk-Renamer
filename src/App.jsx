@@ -3,6 +3,7 @@ import { applyRename, RENAME_MODES } from "./utils/renameLogic";
 import OptionsPanel from "./components/OptionsPanel";
 import DropZone from "./components/DropZone";
 import "./App.css";
+import JSZip from "jszip";
 
 export default function BulkRenamer() {
   const [files, setFiles] = useState([]);
@@ -18,14 +19,7 @@ export default function BulkRenamer() {
   const [done, setDone] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [zipping, setZipping] = useState(false);
-  const [jszip, setJszip] = useState(null);
 
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
-    script.onload = () => setJszip(window.JSZip);
-    document.head.appendChild(script);
-  }, []);
 
   const processFiles = (fileList) => {
     const arr = Array.from(fileList).map(f => {
@@ -84,22 +78,39 @@ export default function BulkRenamer() {
   const hasChange = previews.some(p => p.newName !== p.original + p.ext);
 
   const handleDownloadZip = async () => {
-    if (!jszip) return;
     setZipping(true);
-    const zip = new jszip();
-    for (const p of previews) {
-      const buf = await p.file.arrayBuffer();
-      zip.file(p.newName, buf);
+    
+    // Memberi waktu react untuk update state UI "Membuat ZIP..."
+    await new Promise(r => setTimeout(r, 30));
+    
+    try {
+      const zip = new JSZip();
+      
+      for (const p of previews) {
+        zip.file(p.newName, p.file);
+      }
+      
+      const blob = await zip.generateAsync({ 
+        type: "blob",
+        compression: "STORE"
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "renamed_files.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      
+      setDone(true);
+    } catch (err) {
+      console.error(err);
+      alert("Error membuat ZIP!");
+    } finally {
+      setZipping(false);
     }
-    const blob = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "renamed_files.zip";
-    a.click();
-    URL.revokeObjectURL(url);
-    setZipping(false);
-    setDone(true);
   };
 
   const handleDownloadAll = () => {
@@ -222,7 +233,7 @@ export default function BulkRenamer() {
                   </button>
                   <button
                     onClick={handleDownloadZip}
-                    disabled={!hasChange || zipping || !jszip}
+                    disabled={!hasChange || zipping}
                     title="Download semua dalam 1 file ZIP"
                     className="primary-btn"
                   >
