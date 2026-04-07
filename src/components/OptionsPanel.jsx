@@ -82,5 +82,88 @@ export default function OptionsPanel({ mode, options, opt }) {
     </>
   );
 
+  if (mode === "rename_all") return (
+    <>
+      {field("Nama baru", (
+        <input
+          className="input-field"
+          value={options.newBaseName}
+          onChange={e => opt("newBaseName", e.target.value)}
+          placeholder="contoh: vacation, foto_wisuda ..."
+        />
+      ))}
+
+      {/* Toggle numbering */}
+      {checkbox("Tambah numbering otomatis", "useNumbering")}
+
+      {/* Opsi numbering — hanya tampil kalau useNumbering = true */}
+      {options.useNumbering && (
+        <>
+          {field("Mulai dari", (
+            <input
+              type="number"
+              className="input-field"
+              value={options.numberingStart}
+              onChange={e => opt("numberingStart", e.target.value)}
+            />
+          ))}
+          {field("Padding (digit)", (
+            <input
+              type="number"
+              className="input-field"
+              value={options.numberingPad}
+              onChange={e => opt("numberingPad", e.target.value)}
+              min={1} max={6}
+            />
+          ))}
+          {field("Separator", (
+            <input
+              className="input-field"
+              value={options.numberingSep}
+              onChange={e => opt("numberingSep", e.target.value)}
+              placeholder="_"
+            />
+          ))}
+          {field("Posisi nomor", (
+            <div className="position-switcher">
+              {["prefix", "suffix"].map(p => (
+                <button
+                  key={p}
+                  onClick={() => opt("numberingPos", p)}
+                  className={`position-btn ${options.numberingPos === p ? 'active' : ''}`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* Preview live */}
+      {options.newBaseName && (
+        <div style={{
+          marginTop: 8,
+          padding: "12px 14px",
+          background: "var(--panel-bg)",
+          border: "1px solid var(--border-color)",
+          borderRadius: 8,
+          fontSize: 13,
+          fontFamily: "var(--font-mono)",
+          color: "var(--text-main)",
+        }}>
+          Preview:{" "}
+          <strong style={{color: "var(--accent-color)"}}>
+            {options.useNumbering
+              ? options.numberingPos === "prefix"
+                ? `${"1".padStart(parseInt(options.numberingPad) || 3, "0")}${options.numberingSep || "_"}${options.newBaseName}.ext`
+                : `${options.newBaseName}${options.numberingSep || "_"}${"1".padStart(parseInt(options.numberingPad) || 3, "0")}.ext`
+              : `${options.newBaseName}.ext`}
+          </strong>
+        </div>
+      )}
+    </>
+  );
+
   return null;
 }

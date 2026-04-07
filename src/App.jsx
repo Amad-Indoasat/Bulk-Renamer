@@ -13,6 +13,7 @@ export default function BulkRenamer() {
     padding: "3", start: "1", separator: "_", position: "suffix",
     caseType: "lower",
     trimSpaces: true, spaceReplace: "_", trimSpecial: false, trimDots: false,
+    newBaseName: "", useNumbering: true, numberingPad: "3", numberingStart: "1", numberingSep: "_", numberingPos: "suffix",
   });
   const [done, setDone] = useState(false);
   const [dragging, setDragging] = useState(false);

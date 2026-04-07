@@ -5,7 +5,17 @@ export const RENAME_MODES = [
   { id: "numbering", label: "Numbering Otomatis" },
   { id: "case", label: "Ubah Case" },
   { id: "trim", label: "Hapus Spasi/Karakter" },
+   { id: "rename_all", label: "Ganti Semua Nama" },
 ];
+
+export const DEFAULT_OPTIONS = {
+  newBaseName: "",
+  useNumbering: true,
+  numberingPad: "3",
+  numberingStart: "1",
+  numberingSep: "_",
+  numberingPos: "suffix",
+};
 
 export const CASE_OPTIONS = [
   { id: "lower", label: "lowercase" },
@@ -56,6 +66,17 @@ export function applyRename(name, ext, mode, options, index) {
       if (options.trimDots) result = result.replace(/\.+/g, "");
       return result;
     }
+    case "rename_all": {
+      const base = options.newBaseName || "file";
+      if (!options.useNumbering) return base;
+      const pad   = parseInt(options.numberingPad)   || 3;
+      const start = parseInt(options.numberingStart) || 1;
+      const sep   = options.numberingSep ?? "_";
+      const num   = String(index + start).padStart(pad, "0");
+      return options.numberingPos === "prefix"
+    ? num + sep + base
+    : base + sep + num;
+}
     default: return base;
   }
 }
